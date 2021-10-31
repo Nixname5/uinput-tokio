@@ -269,6 +269,16 @@ impl Builder {
         self
     }
 
+    pub fn set_property(self, property: &InputDeviceProperty) -> Result<Self, Box<dyn std::error::Error>> {
+        let fd = self.file.as_raw_fd();
+
+        unsafe {
+            Errno::result(ui_set_propbit(fd, property.to_cint()))?;
+        }
+
+        Ok(self)
+    }
+
     /// Create the defined device.
     pub async fn create(self) -> Result<Device, Box<dyn std::error::Error>> {
         let fd = self.file.as_raw_fd();
@@ -281,5 +291,28 @@ impl Builder {
         }
 
         Ok(Device::new(self.file))
+    }
+}
+
+pub enum InputDeviceProperty {
+    InputPropPointer,
+    InputPropDirect,
+    InputPropButtonpad,
+    InputPropSemiMt,
+    InputPropTopbuttonpad,
+    InputPropPointingStick,
+    InputPropAccelerometer,
+}
+impl InputDeviceProperty {
+    pub fn to_cint(&self) -> c_int {
+        match self {
+            InputDeviceProperty::InputPropPointer => INPUT_PROP_POINTER,
+            InputDeviceProperty::InputPropDirect => INPUT_PROP_DIRECT,
+            InputDeviceProperty::InputPropButtonpad => INPUT_PROP_BUTTONPAD,
+            InputDeviceProperty::InputPropSemiMt => INPUT_PROP_SEMI_MT,
+            InputDeviceProperty::InputPropTopbuttonpad => INPUT_PROP_TOPBUTTONPAD,
+            InputDeviceProperty::InputPropPointingStick => INPUT_PROP_POINTING_STICK,
+            InputDeviceProperty::InputPropAccelerometer => INPUT_PROP_ACCELEROMETER,
+        }
     }
 }
